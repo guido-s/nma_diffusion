@@ -85,24 +85,25 @@ star <- netmeta(effect, se.effect, trt1, trt2, study)
 
 
 # Senn2013 ####
-pw <- pairwise(treatment, n = n, mean = mean, sd = sd, studlab = study,
-  data = Senn2013, sm = "MD")
-nma.senn <- netmeta(pw, nchar.trts = 4)
+pw_senn <- pairwise(treatment, n = n, mean = mean, sd = sd,
+  data = Senn2013, studlab = study, sm = "MD")
+nma_senn <- netmeta(pw_senn, nchar.trts = 4)
 
 
 # Dong 2013 ####
-pw <- pairwise(treatment, death, randomized, studlab = id, 
+pw_dong <- pairwise(treatment, death, randomized, studlab = id, 
   data = Dong2013, sm = "OR", allstudies = TRUE)
-nma.dong <- netmeta(pw)
+nma_dong <- netmeta(pw_dong)
 
 
 # Stowe 2010 ####
-pw <- pairwise(treat = list(t1, t2, t3), n = list(n1, n2, n3), 
+pw_stowe <- pairwise(treat = list(t1, t2, t3), n = list(n1, n2, n3), 
   mean = list(y1, y2, y3), sd = list(sd1, sd2, sd3), 
   studlab = study, data = Stowe2010, sm = "MD")
-nma.stowe <- netmeta(pw)
+nma_stowe <- netmeta(pw_stowe)
 
 
 # Jalota 2011 ####
-pw <- pairwise(trt, pain, n, studlab = id, sm = "RR", data = Jalota2011)
-nma.jalota <- netmeta(pw, reference.group = "Hand vein")
+pw_jalota <- pairwise(trt, pain, n, studlab = id, sm = "RR",
+  data = Jalota2011)
+nma_jalota <- netmeta(pw_jalota, reference.group = "Hand vein")

@@ -5,7 +5,6 @@
 # *Research Synthesis Methods*, accepted for publication
 
 library("netmeta")
-library("MASS")
 
 settings.netmeta(number.of.studies = FALSE)
 
@@ -16,13 +15,13 @@ options(width = 100)
 
 # Figure 1 ####
 
-pdf("Figure1.pdf", width = 15)
+pdf("Figure1.pdf", width = 15.5)
 par(mfrow = c(1, 3))
 netgraph(nma2, cex = 2)
-netgraph(nma.dong, seq = "optimal", rotate = 45, cex = 2)
+netgraph(nma_dong, seq = "optimal", rotate = 1 / n * 360, cex = 2)
 labs <- c("Ante", "Hand", "Lido-prop", "Lido-pre", "Keta-pre",
   "NSAIDS-pre", "Opioid-pre")
-netgraph(nma.jalota, start = "prcomp", seq = "optimal", rotate = 120, 
+netgraph(nma_jalota, start = "prcomp", seq = "optimal", rotate = 103,
   labels = labs, scale = 1.2, cex = 2)
 dev.off()
 
@@ -48,13 +47,13 @@ dev.off()
 ## Figure 5 ####
 
 pdf("Figure5.pdf")
-draw.TE(nma.dong, N = 10, text = TRUE)
+draw.TE(nma_dong, N = 10, text = TRUE)
 dev.off()
 
 ## Figure 6 ####
 
 pdf("Figure6.pdf", width = 9)
-rbc <- walk(nma.dong, nma.dong$trts, 50)
+rbc <- walk(nma_dong, nma_dong$trts, 50)
 dev.off()
 
 
@@ -62,7 +61,7 @@ dev.off()
 
 ## Figure 7 ####
 pdf("Figure7.pdf", width = 10)
-diffusion(nma.jalota, N = 3000, equal = TRUE, proportions = TRUE)
+diffusion(nma_jalota, N = 3000, equal = TRUE, proportions = TRUE)
 text(2250, 0.02, "Antecubital vein (0.2 %)")
 text(2250, 0.30, "Hand vein (49.9 %)")
 text(2250, 0.575, "Lidocaine-propofol admixture (16.3 %)")
@@ -76,8 +75,23 @@ dev.off()
 
 pdf("Figure8.pdf", width = 13, height = 10)
 par(mfrow = c(2, 2))
-draw.TE(nma.jalota, N = 1000, diffusion.type = "simple", verbose = FALSE)
-draw.TE(nma.jalota, N = 10, text = TRUE) # lazy
-draw.TE(nma.jalota, N = 10, diffusion.type = "absorbing", ref = 3, text = TRUE)
-draw.TE(nma.jalota, N = 10, diffusion.type = "absorbing", text = TRUE)
+draw.TE(nma_jalota, N = 1000, diffusion.type = "simple")
+draw.TE(nma_jalota, N = 10, text = TRUE) # lazy
+draw.TE(nma_jalota, N = 10, diffusion.type = "absorbing", ref = 3, text = TRUE)
+draw.TE(nma_jalota, N = 10, diffusion.type = "absorbing", text = TRUE)
+dev.off()
+
+## Figure 9 (Appendix F) ####
+
+# Like Figure 8, but based on the random effects model 
+
+pdf("Figure9.pdf", width = 13, height = 10)
+par(mfrow = c(2, 2))
+draw.TE(nma_jalota, N = 1000, diffusion.type = "simple",
+  random = TRUE)
+draw.TE(nma_jalota, N = 10, text = TRUE, random = TRUE)
+draw.TE(nma_jalota, N = 10, diffusion.type = "absorbing", ref = 3, text = TRUE,
+  random = TRUE)
+draw.TE(nma_jalota, N = 10, diffusion.type = "absorbing", text = TRUE,
+  random = TRUE)
 dev.off()
