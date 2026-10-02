@@ -61,14 +61,15 @@ dev.off()
 
 ## Figure 7 ####
 pdf("Figure7.pdf", width = 10)
-diffusion(nma_jalota, N = 3000, equal = TRUE, proportions = TRUE)
-text(2250, 0.02, "Antecubital vein (0.2 %)")
-text(2250, 0.30, "Hand vein (49.9 %)")
-text(2250, 0.575, "Lidocaine-propofol admixture (16.3 %)")
-text(2250, 0.725, "Lidocaine pretreatment (11.8 %)")
-text(2250, 0.835, "Pretreatment with ketamine (9.5 %)")
-text(2250, 0.900, "Pretreatment with NSAIDS (4.2 %)")
-text(2250, 0.950, "Pretreatment with opioids (8.0 %)")
+dif <- diffusion(nma_jalota, N = 3000, equal = TRUE, proportions = TRUE)
+dif
+#
+xpos <- 2950
+ypos <- c(0.02, 0.30, 0.575, 0.725, 0.835, 0.9, 0.95)
+#
+props <- paste0(rownames(dif), " (", sprintf("%.1f", dif * 100), " %)")
+for (i in seq_along(props))
+  text(xpos, ypos[i], props[i], adj = 1)
 dev.off()
 
 ## Figure 8 ####
@@ -77,7 +78,8 @@ pdf("Figure8.pdf", width = 13, height = 10)
 par(mfrow = c(2, 2))
 draw.TE(nma_jalota, N = 1000, diffusion.type = "simple")
 draw.TE(nma_jalota, N = 10, text = TRUE) # lazy
-draw.TE(nma_jalota, N = 10, diffusion.type = "absorbing", ref = 3, text = TRUE)
+draw.TE(nma_jalota, N = 10, diffusion.type = "absorbing",
+  ref = "Lidocaine-propofol admixture", text = TRUE)
 draw.TE(nma_jalota, N = 10, diffusion.type = "absorbing", text = TRUE)
 dev.off()
 
@@ -90,8 +92,8 @@ par(mfrow = c(2, 2))
 draw.TE(nma_jalota, N = 1000, diffusion.type = "simple",
   random = TRUE)
 draw.TE(nma_jalota, N = 10, text = TRUE, random = TRUE)
-draw.TE(nma_jalota, N = 10, diffusion.type = "absorbing", ref = 3, text = TRUE,
-  random = TRUE)
+draw.TE(nma_jalota, N = 10, diffusion.type = "absorbing",
+  ref = "Lidocaine-propofol admixture", text = TRUE, random = TRUE)
 draw.TE(nma_jalota, N = 10, diffusion.type = "absorbing", text = TRUE,
   random = TRUE)
 dev.off()

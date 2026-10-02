@@ -32,7 +32,7 @@ Power <- function(M, k) {
 # proportions if TRUE, show proportional degrees over time
 # diffusion.type "simple" (default), "lazy", or "absorbing"; see paper.
 # p           if diffusion.type is "lazy", the proportion of lazy mass (default is 0.5)
-# ref         if not NULL, specifies the reference node (numeric)
+# ref         if not NULL, specifies the reference node
 # title       the step number, if proportions = FALSE
 # flow        if TRUE, distribution of mass over edges is shown by their thickness
 # verbose     if TRUE, distribution of mass over nodes is printed for all iterations 
@@ -42,6 +42,21 @@ diffusion <- function(x, t0 = NULL, equal = FALSE, N = 20, size = 200, cex = 1,
                       diffusion.type = "simple", p = 0.5, ref = NULL,
                       title = TRUE, flow = FALSE, verbose = FALSE,
                       ...) {
+  
+  if (!inherits(x, "netmeta"))
+    stop("Argument 'x' must be a network meta-analysis object ",
+         "created with netmeta().")
+  #
+  if (!is.null(ref)) {
+    ref.id <- match(ref, x$trts)
+    #
+    if (is.na(ref.id)) {
+      stop(paste("Input to argument 'ref' must be",
+                 "any of the following treatments:",
+                 paste0("'", x$trts, "'", collapse = ", ")))
+    }
+  }
+  #
   if (is.null(t0)) {
     t0 <- c(1, rep(0, x$n - 1))
     if (equal)
@@ -60,12 +75,13 @@ diffusion <- function(x, t0 = NULL, equal = FALSE, N = 20, size = 200, cex = 1,
   A <- D - L               # Adjacency matrix
   I <- diag(x$n)
   Tr <- A %*% diag(1 / diag(D)) # Transition/Diffusion matrix (if diffusion.type = "simple")
+  #
   if (diffusion.type == "lazy")
     Tr <- p * Tr + (1 - p) * I
   if (diffusion.type == "absorbing" & is.null(ref))
     Tr[, x$n] <- c(rep(0, x$n - 1), 1)
   if (diffusion.type == "absorbing" & !is.null(ref))
-    Tr[, ref] <- c(rep(0, ref - 1), 1, rep(0, x$n - ref))
+    Tr[, ref.id] <- c(rep(0, ref.id - 1), 1, rep(0, x$n - ref.id))
   #
   if (!proportions) {
     rescale <- TRUE
@@ -116,7 +132,10 @@ diffusion <- function(x, t0 = NULL, equal = FALSE, N = 20, size = 200, cex = 1,
     }
     for (i in seq_len(N)) {
       t <- Tr %*% t
-      print(t)
+      #
+      if (verbose)
+        print(t)
+      #
       tsum <- t
       for (j in 2:x$n)
         tsum[j] <- tsum[j - 1] + t[j]
@@ -129,6 +148,8 @@ diffusion <- function(x, t0 = NULL, equal = FALSE, N = 20, size = 200, cex = 1,
       }
     }
   }
+  #
+  invisible(t)
 }
 
 
@@ -136,10 +157,25 @@ diffusion <- function(x, t0 = NULL, equal = FALSE, N = 20, size = 200, cex = 1,
 
 # x is a netmeta object
 # N is a (large) number of iterations
-# ref is the number of a treatment that is to be used as a reference
+# ref is the reference node
 # random if true, a random effects model is used
 
 Hat <- function(x, N = 1000, ref = NULL, random = FALSE) {
+  
+  if (!inherits(x, "netmeta"))
+    stop("Argument 'x' must be a network meta-analysis object ",
+         "created with netmeta().")
+  #
+  if (!is.null(ref)) {
+    ref.id <- match(ref, x$trts)
+    #
+    if (is.na(ref.id)) {
+      stop(paste("Input to argument 'ref' must be",
+                 "any of the following treatments:",
+                 paste0("'", x$trts, "'", collapse = ", ")))
+    }
+  }
+  #
   B <- x$B.matrix # Edge-vertex incidence matrix (design matrix)
   if (x$m == 1)
     B <- t(B)
@@ -166,9 +202,9 @@ Hat <- function(x, N = 1000, ref = NULL, random = FALSE) {
   H3 <- check3 <- Tr2 <- NA # Hat matrix, with reference node
   #
   if (!is.null(ref)) {
-    Br <- as.matrix(B[, -ref])
-    Tr2 <- as.matrix(Tr[-ref, -ref])
-    Dr <-  as.matrix(D[-ref, -ref])
+    Br <- as.matrix(B[, -ref.id])
+    Tr2 <- as.matrix(Tr[-ref.id, -ref.id])
+    Dr <-  as.matrix(D[-ref.id, -ref.id])
     H3 <- Br %*% solve(Dr) %*% Power(Tr2, N)$S %*% t(Br) %*% W 
     check3 <- all.equal(H, H3)
   }
@@ -186,13 +222,28 @@ Hat <- function(x, N = 1000, ref = NULL, random = FALSE) {
 # x              netmeta object
 # N              number of iterations
 # diffusion.type "simple", "lazy" (default), or "absorbing"; see paper
-# ref            if not NULL, specifies the reference node (numeric)
+# ref            if not NULL, specifies the reference node
 # text           if TRUE, show Q values in the graph
 # random         if TRUE, a random effects model is used
 # verbose        if TRUE, give longer output
 
 draw.TE <- function(x, N = 10, diffusion.type = "lazy", ref = NULL,
                     random = FALSE, text = FALSE, verbose = FALSE) {
+  
+  if (!inherits(x, "netmeta"))
+    stop("Argument 'x' must be a network meta-analysis object ",
+         "created with netmeta().")
+  #
+  if (!is.null(ref)) {
+    ref.id <- match(ref, x$trts)
+    #
+    if (is.na(ref.id)) {
+      stop(paste("Input to argument 'ref' must be",
+                 "any of the following treatments:",
+                 paste0("'", x$trts, "'", collapse = ", ")))
+    }
+  }
+  #
   col1 <- seq_len(x$m)
   y.new <- matrix(0, nrow = x$m, ncol = N + 2)
   y.new[, 1] <- x$TE
@@ -203,6 +254,9 @@ draw.TE <- function(x, N = 10, diffusion.type = "lazy", ref = NULL,
     ylim <- c(min(x$TE.nma.random) - sd(x$TE.nma.random), 
               max(x$TE.nma.random) + sd(x$TE.nma.random))
     d <- diag(x$L.matrix.random)
+    Q.n[1] <- 
+      t(x$TE - x$TE.nma.random) %*% 
+      x$W.matrix.random %*% (x$TE - x$TE.nma.random)
   }
   else {
     ylim <- c(min(x$TE.nma.common) - sd(x$TE.nma.common), 
@@ -213,7 +267,6 @@ draw.TE <- function(x, N = 10, diffusion.type = "lazy", ref = NULL,
   plot(rep(-1, x$m), x$TE, xlim = c(-1, N), ylim = ylim,
        xlab = "Iteration step", ylab = "Treatment effect", 
        las = 1, pch = 16, cex = 0.5, col = col1)
-  r <- which(d == max(d))[1]
   #
   for (n in 0:N) {
     if (diffusion.type == "simple")
@@ -221,7 +274,8 @@ draw.TE <- function(x, N = 10, diffusion.type = "lazy", ref = NULL,
     else if (diffusion.type == "lazy")
       y.new[, n + 2] <- Hat(x, n, random = random)$H2 %*% x$TE
     else if (diffusion.type == "absorbing" & is.null(ref))
-      y.new[, n + 2] <- Hat(x, n, r, random)$H3 %*% x$TE
+      y.new[, n + 2] <-
+        Hat(x, n, names(which(d == max(d))[1]), random)$H3 %*% x$TE
     else if (diffusion.type == "absorbing" & !is.null(ref))
       y.new[, n + 2] <- Hat(x, n, ref, random)$H3 %*% x$TE
     if (verbose)
@@ -249,7 +303,7 @@ draw.TE <- function(x, N = 10, diffusion.type = "lazy", ref = NULL,
       text(n, ylim[1], round(Q.n[n + 2], 2), cex = 0.8)
   }
   if (text)
-    text(-1, ylim[1], round(x$Q, 2), cex = 0.8)
+    text(-1, ylim[1], round(Q.n[1], 2), cex = 0.8)
   #
   res <- list(y = y.new, Q = Q.n, ref = ref)
   #
@@ -264,12 +318,27 @@ draw.TE <- function(x, N = 10, diffusion.type = "lazy", ref = NULL,
 # hat            if TRUE, show the course of the hat matrix diagonal,
 #                if FALSE, show the course of the NMA variance estimates
 # diffusion.type "simple", "lazy" (default), or "absorbing"; see paper
-# ref            if not NULL, specifies the reference node (numeric)
+# ref            if not NULL, specifies the reference node
 # random         if TRUE, a random effects model is used
 # verbose        if TRUE, give longer output
 
 draw.hat <- function(x, N = 10, hat = TRUE, diffusion.type = "lazy",
                      ref = NULL, random = FALSE, verbose = FALSE) {
+  
+  if (!inherits(x, "netmeta"))
+    stop("Argument 'x' must be a network meta-analysis object ",
+         "created with netmeta().")
+  #
+  if (!is.null(ref)) {
+    ref.id <- match(ref, x$trts)
+    #
+    if (is.na(ref.id)) {
+      stop(paste("Input to argument 'ref' must be",
+                 "any of the following treatments:",
+                 paste0("'", x$trts, "'", collapse = ", ")))
+    }
+  }
+  #
   col1 <- seq_len(x$m)
   y.new <- matrix(0, nrow = x$m, ncol = N + 2)
   if (random)
