@@ -8,4 +8,6 @@ R code and datasets supporting
 
 Rücker G, Davies AL, Schwarzer G (2026): Network meta-analysis and diffusion. *Research Synthesis Methods*, accepted for publication
 
+To reproduce the results and figures in this paper, run the commands in the file *analysis.R*.
+
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22024086.svg)](https://doi.org/10.5281/zenodo.22024086)
